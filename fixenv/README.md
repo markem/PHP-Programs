@@ -108,9 +108,9 @@ variables. Like so:
 
 	PATH = %my_path%;
 
-	The above could be put in the USER Enviroment Variable
-	list or the SYSTEM Environment Variable list depending up
-	on where it should go.
+	The above could be put in the USER Enviroment
+	Variable list or the SYSTEM Environment Variable
+	list depending upon where it should go.
 
 	This should reduce the size of both PATH statements.
 
