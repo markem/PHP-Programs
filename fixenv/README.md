@@ -19,7 +19,7 @@ a SYSTEM variable.
 	- In the Windows environment, there are five major
 	keys in the registry. These are:
 
-	HKCR, HKCU, HKLM, HKU, HKCC
+		- HKCR, HKCU, HKLM, HKU, HKCC
 
 	The HKCU and the HKU registry areas relate to
 	the USER environment variables while the rest are
