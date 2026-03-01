@@ -11,38 +11,42 @@ since this is a batch file.
 other languages) to see if the key is a USER variable or
 a SYSTEM variable.
 
-2a. Please note that, as far as I have found, the only
-difference between a USER variable and a SYSTEM variable
-is that SYSTEM variables should always be all UPPERCASE.
+	- Please note that, as far as I have found,
+	the only difference between a USER variable and
+	a SYSTEM variable is that SYSTEM variables should
+	always be all UPPERCASE.
 
-2b. In the Windows environment, there are five major keys
-in the registry. These are:
+	- In the Windows environment, there are five major
+	keys in the registry. These are:
 
 	HKCR, HKCU, HKLM, HKU, HKCC
 
-The HKCU and the HKU registry areas relate to the USER
-environment variables while the rest are delegated to the
-SYSTEM environment variables EXCEPT when Microsoft just
-feels like mucking things up. Not only that, but there are
-environment variables that are just not in the registry. I
-do not know why that is - but it is. I am still searching
-for more information about why some variables (which are
-found by just doing a SET command on a DOS Command Line
-Interface or CLI and if you go to
+	The HKCU and the HKU registry areas relate to
+	the USER environment variables while the rest are
+	delegated to the SYSTEM environment variables
+	EXCEPT when Microsoft just feels like mucking
+	things up. Not only that, but there are environment
+	variables that are just not in the registry. I
+	do not know why that is - but it is. I am still
+	searching for more information about why some
+	variables (which are found by just doing a SET
+	command on a DOS Command Line Interface or CLI
+	and if you go to
 
-Control Panel->System->Advanced System Settings->
-Advanced Tab->Environment Variables Button
+	Control Panel->System->Advanced System Settings->
+	Advanced Tab->Environment Variables Button
 
-You will see that there are TWO sections. The USER and
-SYSTEM variables. Which is all good and fine but there is
-no information on HOW they decided to put those variables
-into those two areas and WHY some of those variables are
-just not found. More as I find out more.
+	You will see that there are TWO sections. The USER
+	and SYSTEM variables. Which is all good and fine
+	but there is no information on HOW they decided to
+	put those variables into those two areas and WHY
+	some of those variables are just not found. More
+	as I find out more.
 
-3. It also creates a badPaths.bat file. This contains
-all of the paths which were not found on YOUR SYSTEM. It
-does this via the PHP command "file_exists". If it does
-not exist - it is considered a bad path.
+3. It also creates a badPaths.bat file. This contains all
+of the paths which were not found on YOUR SYSTEM. It does
+this via the PHP command "file_exists". If it does not
+exist - it is considered a bad path.
 
 3a. PLEASE NOTE!!!! The path may not exist because it is
 on a NETWORK DRIVE or on an external disk drive that is
