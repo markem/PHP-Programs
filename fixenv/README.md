@@ -48,16 +48,18 @@ of the paths which were not found on YOUR SYSTEM. It does
 this via the PHP command "file_exists". If it does not
 exist - it is considered a bad path.
 
-3a. PLEASE NOTE!!!! The path may not exist because it is
-on a NETWORK DRIVE or on an external disk drive that is
-currently not hooked up to your system. SO BE CAREFUL. The
-default, when determining if a path is bad does first test
-to make sure there is a single letter (like "C") followed
-by a colon (:) and also it looks for the forward slash and
-backwards slash so you can get "C:", or "C:/", or "C:\"
-which is how Windows depicts disk drives normally. Anything
-else - not tested. So if you have a disk drive labeled as
-"SamsBar:" - that will not be tested. It is just ignored.
+	- PLEASE NOTE!!!! The path may not exist because it
+	is on a NETWORK DRIVE or on an external disk drive
+	that is currently not hooked up to your system. SO
+	BE CAREFUL. The default, when determining if a
+	path is bad does first test to make sure there is
+	a single letter (like "C") followed by a colon
+	(:) and also it looks for the forward slash and
+	backwards slash so you can get "C:", or "C:/", or
+	"C:\" which is how Windows depicts disk drives
+	normally. Anything else - not tested. So if you
+	have a disk drive labeled as "SamsBar:" - that
+	will not be tested. It is just ignored.
 
 4. Then the program creates a new batch file called
 newEnvs.bat. This has the environment variables all set
@@ -67,23 +69,23 @@ yet - change it so it does the changes how >YOU< want them
 to be. This is how I would like them to be made. Some of
 the things these changes do is:
 
-4a. The registry can create keys. You can name them
-whatever you want (within reason). These keys are then
-reference by putting percent signs around the name of the
-key. Like so:
+	- The registry can create keys. You can name them
+	whatever you want (within reason). These keys are
+	then reference by putting percent signs around
+	the name of the key. Like so:
 
-First - you create the key and the value like so:
+	First - you create the key and the value like so:
 
-	my_path = "XYZ:/This/is/the/path/information"
+		my_path = "XYZ:/This/is/the/path/information"
 
-Then - you reference the above like so:
+	Then - you reference the above like so:
 
-	kor_path = %my_path%
+		kor_path = %my_path%
 
-So now "kor_path" has the same value as "my_path". The
-thing is - if you change what "my_path" is - then you
-automatically change what "kor_path" is. This is the key
-to what I am doing.
+	So now "kor_path" has the same value as "my_path". The
+	thing is - if you change what "my_path" is - then you
+	automatically change what "kor_path" is. This is the key
+	to what I am doing.
 
 5. To get what I am trying to do you should realize that
 Windows used to have a really bad problem when it came
@@ -106,11 +108,11 @@ variables. Like so:
 
 	PATH = %my_path%;
 
-The above could be put in the USER Enviroment Variable
-list or the SYSTEM Environment Variable list depending up
-on where it should go.
+	The above could be put in the USER Enviroment Variable
+	list or the SYSTEM Environment Variable list depending up
+	on where it should go.
 
-This should reduce the size of both PATH statements.
+	This should reduce the size of both PATH statements.
 
 6. So then I went "How do you not overwrite some other
 environment variable"? Then I remembered the old "Use
@@ -123,29 +125,29 @@ to be in the USER Environment Variable area, the dash is
 just a separator, and the "#####" is the number of the
 variable. Example: __USER-00001.
 
-I am hoping that this will make life easier for everyone. I
-know it will for me.
+	I am hoping that this will make life easier for
+	everyone. I know it will for me.
 
 7. Files that are created are:
 
-7a. curEnvs.bat - The current environment variables you
-currently have on your system.
+	- curEnvs.bat - The current environment variables
+	you currently have on your system.
 
-7b. newEnvs.bat - the NEW environment variables that will
-be made IF you run the batch file.
+	- newEnvs.bat - the NEW environment variables that
+	will be made IF you run the batch file.
 
-7b1. PLEASE NOTE : The newEnvs.bat file WILL DELETE your
-old variables and change your system!!!! So be CAREFUL
-using it.
+		- PLEASE NOTE : The newEnvs.bat file WILL
+		DELETE your old variables and change your
+		system!!!! So be CAREFUL using it.
 
-7c. badPaths.bat - These are the bad paths found in your
-registry. A "bad" path is a path that does not exist
-on your computer. IF THE PATH IS TO A NETWORK DRIVE OR
-EXTERNAL DISK DRIVE - then do not run the badPaths.bat
-file as it will delete those paths!!!!!
+	- badPaths.bat - These are the bad paths found in your
+	registry. A "bad" path is a path that does not exist
+	on your computer. IF THE PATH IS TO A NETWORK DRIVE OR
+	EXTERNAL DISK DRIVE - then do not run the badPaths.bat
+	file as it will delete those paths!!!!!
 
-7c1. PLEASE NOTE : The program WILL ASK YOU if you want
-to delete these bad paths. I would tell the program NO
-- but if you say YES - they are gone. Period. YOU HAVE
-BEEN WARNED!
+	- PLEASE NOTE : The program WILL ASK YOU if you want
+	to delete these bad paths. I would tell the program NO
+	- but if you say YES - they are gone. Period. YOU HAVE
+	BEEN WARNED!
 
