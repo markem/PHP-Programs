@@ -1,4 +1,4 @@
-# fixenv
+<h1>fixenv</h1>
 A program to try to fix Windows' Environment Variables. The
 program itself does not do anything other than the
 following:
@@ -74,15 +74,15 @@ the things these changes do is:
 	then reference by putting percent signs around
 	the name of the key. Like so:
 
-		First - you create the key and the value like so:
+		- First - you create the key and the value like so:
 
 			my_path = "XYZ:/This/is/the/path/information"
 
-		Then - you reference the above like so:
+		- Then - you reference the above like so:
 
 			kor_path = %my_path%
 
-		So now "kor_path" has the same value as "my_path". The
+		- So now "kor_path" has the same value as "my_path". The
 		thing is - if you change what "my_path" is - then you
 		automatically change what "kor_path" is. This is the key
 		to what I am doing.
