@@ -39,7 +39,24 @@ no information on HOW they decided to put those variables
 into those two areas and WHY some of those variables are
 just not found. More as I find out more.
 
-3. Then the program creates a new batch file called
+3.	It also creates a badPaths.bat file. This contains
+all of the paths which were not found on YOUR SYSTEM. It
+does this via the PHP command "file_exists". If it does
+not exist - it is considered a bad path.
+
+3a. PLEASE NOTE!!!! The path may not exist because it is
+on a NETWORK DRIVE or on an external disk drive that is
+currently not hooked up to your system. SO BE CAREFUL. The
+default, when determining if a path is bad does first test
+to make sure there is a single letter (like "C") followed
+by a colon (:) and also it looks for the forward slash and
+backwards slash so you can get "C:", or "C:/", or "C:\"
+which is how Windows depicts disk drives normally. Anything
+else - not tested. So if you have a disk drive labeled as
+"SamsBar:" - that will not be tested. It is just ignored.
+
+
+4. Then the program creates a new batch file called
 newEnvs.bat. This has the environment variables all set
 up like they should be (IMHO). You may not like how I have
 set them up. That's fine. Don't use the program or better
@@ -47,7 +64,7 @@ yet - change it so it does the changes how >YOU< want them
 to be. This is how I would like them to be made. Some of
 the things these changes do is:
 
-3a. The registry can create keys. You can name them
+4a. The registry can create keys. You can name them
 whatever you want (within reason). These keys are then
 reference by putting percent signs around the name of the
 key. Like so:
@@ -65,7 +82,7 @@ thing is - if you change what "my_path" is - then you
 automatically change what "kor_path" is. This is the key
 to what I am doing.
 
-4. To get what I am trying to do you should realize that
+5. To get what I am trying to do you should realize that
 Windows used to have a really bad problem when it came
 to environment variables. The problem was - each variable
 could only hold up to 256 characters. A hold over from the
@@ -92,7 +109,7 @@ on where it should go.
 
 This should reduce the size of both PATH statements.
 
-5. So then I went "How do you not overwrite some other
+6. So then I went "How do you not overwrite some other
 environment variable"? Then I remembered the old "Use
 two underscores if you want to have a variable that
 other people do not normally use". I tried it and it
@@ -106,25 +123,25 @@ variable. Example: __USER-00001.
 I am hoping that this will make life easier for everyone. I
 know it will for me.
 
-6. Files that are created are:
+7. Files that are created are:
 
-6a. curEnvs.bat - The current environment variables you
+7a. curEnvs.bat - The current environment variables you
 currently have on your system.
 
-6b. newEnvs.bat - the NEW environment variables that will
+7b. newEnvs.bat - the NEW environment variables that will
 be made IF you run the batch file.
 
-6b1. PLEASE NOTE : The newEnvs.bat file WILL DELETE your
+7b1. PLEASE NOTE : The newEnvs.bat file WILL DELETE your
 old variables and change your system!!!! So be CAREFUL
 using it.
 
-6c. badPaths.bat - These are the bad paths found in your
+7c. badPaths.bat - These are the bad paths found in your
 registry. A "bad" path is a path that does not exist
 on your computer. IF THE PATH IS TO A NETWORK DRIVE OR
 EXTERNAL DISK DRIVE - then do not run the badPaths.bat
 file as it will delete those paths!!!!!
 
-6c1. PLEASE NOTE : The program WILL ASK YOU if you want
+7c1. PLEASE NOTE : The program WILL ASK YOU if you want
 to delete these bad paths. I would tell the program NO
 - but if you say YES - they are gone. Period. YOU HAVE
 BEEN WARNED!
