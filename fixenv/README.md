@@ -1,4 +1,4 @@
-<h1>fixenv</h1>
+# fixenv
 A program to try to fix Windows' Environment Variables. The
 program itself does not do anything other than the
 following:
@@ -148,6 +148,6 @@ variable. Example: __USER-00001.
 
 	- PLEASE NOTE : The program WILL ASK YOU if you want
 	to delete these bad paths. I would tell the program NO
-	- but if you say YES - they are gone. Period. YOU HAVE
+	\- but if you say YES - they are gone. Period. YOU HAVE
 	BEEN WARNED!
 
