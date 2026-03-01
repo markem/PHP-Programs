@@ -54,9 +54,9 @@ exist - it is considered a bad path.
 	BE CAREFUL. The default, when determining if a
 	path is bad does first test to make sure there is
 	a single letter (like "C") followed by a colon
-	(:) and also it looks for the forward slash and
+	(:) and it also looks for the forward slash and
 	backwards slash so you can get "C:", or "C:/", or
-	"C:\" which is how Windows depicts disk drives
+	"C:\\" which is how Windows depicts disk drives
 	normally. Anything else - not tested. So if you
 	have a disk drive labeled as "SamsBar:" - that
 	will not be tested. It is just ignored.
