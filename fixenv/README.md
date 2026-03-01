@@ -3,19 +3,19 @@ A program to try to fix Windows' Environment Variables. The
 program itself does not do anything other than the
 following:
 
-1.	Create a current environment variable list. Some
+1. Create a current environment variable list. Some
 additional information will be displayed are REM statements
 since this is a batch file.
 
-2.	It will test each key (which is called a variable in
+2. It will test each key (which is called a variable in
 other languages) to see if the key is a USER variable or
 a SYSTEM variable.
 
-2a.	Please note that, as far as I have found, the only
+2a. Please note that, as far as I have found, the only
 difference between a USER variable and a SYSTEM variable
 is that SYSTEM variables should always be all UPPERCASE.
 
-2b.	In the Windows environment, there are five major keys
+2b. In the Windows environment, there are five major keys
 in the registry. These are:
 
 	HKCR, HKCU, HKLM, HKU, HKCC
@@ -39,12 +39,12 @@ no information on HOW they decided to put those variables
 into those two areas and WHY some of those variables are
 just not found. More as I find out more.
 
-3.	It also creates a badPaths.bat file. This contains
+3. It also creates a badPaths.bat file. This contains
 all of the paths which were not found on YOUR SYSTEM. It
 does this via the PHP command "file_exists". If it does
 not exist - it is considered a bad path.
 
-3a.	PLEASE NOTE!!!! The path may not exist because it is
+3a. PLEASE NOTE!!!! The path may not exist because it is
 on a NETWORK DRIVE or on an external disk drive that is
 currently not hooked up to your system. SO BE CAREFUL. The
 default, when determining if a path is bad does first test
@@ -55,7 +55,7 @@ which is how Windows depicts disk drives normally. Anything
 else - not tested. So if you have a disk drive labeled as
 "SamsBar:" - that will not be tested. It is just ignored.
 
-4.	Then the program creates a new batch file called
+4. Then the program creates a new batch file called
 newEnvs.bat. This has the environment variables all set
 up like they should be (IMHO). You may not like how I have
 set them up. That's fine. Don't use the program or better
@@ -63,7 +63,7 @@ yet - change it so it does the changes how >YOU< want them
 to be. This is how I would like them to be made. Some of
 the things these changes do is:
 
-4a.	The registry can create keys. You can name them
+4a. The registry can create keys. You can name them
 whatever you want (within reason). These keys are then
 reference by putting percent signs around the name of the
 key. Like so:
