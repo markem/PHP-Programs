@@ -50,7 +50,7 @@
 	$cf = new class_files();
 	$pr = new class_pr();
 
-if( false ){
+if( true ){
 	list( $g, $b ) = $cf->get_files( $cwd, "/class_.*.php$/i", false );
 	foreach( $g as $k=>$v ){
 		if( preg_match("/php-class/i", $v) ){ continue; }
@@ -77,20 +77,26 @@ if( false ){
 	$g[] = "PHP-Programs";
 	$git = implode( "/", $g );
 
-	$files = array( "fixenv.php", "putGIT.php", "plotter.php", "paperTypes.php" );
+	$files = array( "fixenv.php", "putGIT.php", "plotter.php", "paperTypes.php",
+		"getFedReps.php", "getStReps.php" );
+
 	$fromDirs = array(
 		"D:\My Programs\PHP\Fixenvs",
 		"D:\My Programs\PHP\lib",
 		"D:/My Programs/PHP/Plotter",
-		"D:\My Programs\PHP\Paper Types"
+		"D:\My Programs\PHP\Paper Types",
+		"D:\My Programs\PHP\WYRE",
+		"D:\My Programs\PHP\WYRE"
 		);
 
-	$curFiles = array( "fixenv", "putGIT", "plotter", "paperTypes" );
+	$curFiles = array( "fixenv", "putGIT", "plotter", "paperTypes",
+		"getFedReps", "getStReps" );
 
 	foreach( $files as $k=>$v ){
 		$file = $v;
 		$fromDir = $fromDirs[$k];
 		$curfile = $curFiles[$k];
+		if( !preg_match("/(php|csv|exe|bas)$/i", $v) ){ continue; }
 
 		$toDir = "$git/$curfile";
 		if( !file_exists($toDir) ){ mkdir( $toDir, 0777 ); }

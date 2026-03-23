@@ -8,6 +8,7 @@
 #
 	set_error_handler(function($errno, $errstring, $errfile, $errline ){
 #		throw new ErrorException($errstring, $errno, 0, $errfile, $errline);
+		scrPrint( "\e(B" ); # End the line drawing mode
 		die( "Error #$errno IN $errfile @$errline\nContent: " . $errstring. "\n" );
 		});
 
@@ -40,14 +41,10 @@
 		include "$lib/$class";
 		});
 
-	global $cwd, $cf, $pr, $exe, $process, $pipes, $circuit;
+	global $cwd, $cf, $pr, $exe, $bas;
+	global $pipes, $process, $circuit;
 
-	$circuit = array(
-		0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
-		1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
-		2 => array("pipe", "w"),  // stderr is a pipe that the child will write to
-#		2 => array("file", "c:/tmp/stderr.txt", "w"),  // stderr is a pipe that the child will write to
-		);
+	$pr = new class_pr();
 
 	$cwd = getcwd();
 	$bas = "inkey.bas";
@@ -60,54 +57,37 @@
 	$dq = '"';
 	$env = null;
 	$pipes = null;
+#
+#	Image Name                     PID Session Name        Session#    Mem Usage
+#	========================= ======== ================ =========== ============
+#	System Idle Process              0 Services                   0          8 K
+#	System                           4 Services                   0      9,800 K
+#
+	scrTitle();
+#	echo "Getting all processes\n";
+	$pid = null;
+	$process = null;
 
-	echo "Making the inkey.bas file...please wait\n";
-	makeQBKey( $bas ); sleep( 3 );
+	$flag = true;
+	while( $flag ){ $flag = delInkey( $exe ); }
 
-	echo "Compiling the inkey.bas file and creating the inkey.exe file...please wait\n";
-	exec( "$qb64_path/qb64.exe $bas -c -o $dq$cwd/$exe$dq" ); sleep( 3 );
+	if( !file_exists("$cwd/$bas") ){
+		echo "Making the inkey.bas file...please wait\n";
+		makeQB( "$cwd/$bas" ); sleep( 3 );
+
+		echo "Compiling the inkey.bas file and creating the inkey.exe file...please wait\n";
+		exec( "$qb64_path/qb64.exe $dq$cwd/$bas$dq -c -o $dq$cwd/$exe$dq" ); sleep( 3 );
+		}
 
 	$cf = new class_files();
 	$cr = new class_rgb();
 	$pr = new class_pr();
 
-#	$papers = $cf->fget_csv( "paperTypes.ini" );
-	$papers = papers();
-$pr->pr( $papers, "Papers = " ); exit;
-
 	$alpha = sprintf( "%02x%02x%02x%02x", 127, 0, 0, 0 );
 	$alpha = 'black';
-
-	if( is_null("$cwd/$exe") || !file_exists("$cwd/$exe") ){
-		die( "***** ERROR : No such file ('$cwd/$exe') or FILE is NULL\n" );
-		}
-
-	$cmd = "$dq$cwd/$exe$dq";
-	$process = proc_open( $cmd, $circuit, $pipes, $cwd, $env );
-
-	if( !is_resource($process) ){
-		die( "***** ERROR : Could not open a process via PROC_OPEN - aborting.\n" );
-		}
-
-	foreach( $pipes as $k=>$v ){
-		if( !is_resource($pipes[$k]) ){
-			die( "***** ERROR : Did not get the pipe #$k - aborting.\n" );
-			}
-		}
-
-	pipes_close(); exit;
-#
-#	Get all of the paper types
-#
-	$papers = file_get_contents( "./paperTypes.ini" );
-	$papers = explode( "\n", $papers );
-	list( $sizeX, $sizeY ) = getSCRSize();
-	echo "sizeX = $sizeX\n";
 #
 #	Now clear the screen and start working on the paper information.
 #
-if( false ){
-	scrCls();
 	$info = <<<EOD
  _____  _       _   _            
 |  __ \| |     | | | |           
@@ -115,11 +95,21 @@ if( false ){
 |  ___/| |/ _ \| __| __/ _ \ '__|
 | |    | | (_) | |_| ||  __/ |   
 |_|    |_|\___/ \__|\__\___|_|   
+		Version 1.0 by Mark Manning
                                
 EOD;
 
-	scrMsg( 0, 0, $info );
-}
+	scrCls();
+	scrMsg( 0, 0, $info ); sleep( 3 );
+
+	scrCls();
+#scrStatusLine();
+	$info = getKey( true );
+#	echo "INFO = $info\n";
+	step1();
+	$paper = step2();
+exit();
+
 #	$cf->rem_iccp( $cwd );
 
 	$file = "$cwd/Apple Logo-1.png";
@@ -205,6 +195,114 @@ EOD;
 	exit();
 
 ################################################################################
+#	step1(). First step to get things done.
+################################################################################
+function step1()
+{
+	$info = <<<EOD
+Step #1:
+
+Welcome! Our first step is to determine which Pen Plotter
+you have. We do this by allowing you to select the maximum
+paper size your pen plotter will hold. For instance, I
+own an A1 Pen Plotter from UUNA TEK. So - I would select
+the A1 paper size. So look at the following paper sizes
+and pick which one works for you.
+
+EOD;
+
+	scrCls();
+	scrMsg( 8, 1, $info );
+
+	$info = <<<EOD
+Ready to select a paper size?
+EOD;
+
+	$opt = array( "Default"=>"Yes", "q"=>"Quit" );
+	$ans = scrAsk( 0, 15, $info, $opt );
+	if( $ans === "q" ){ pipes_close(); exit; }
+}
+################################################################################
+#	step2(). The second step to get what size the pen plotter is.
+################################################################################
+function step2()
+{
+	$info = <<<EOD
+Step #2:
+
+Please pick a type of paper your pen plotter is named after.
+
+EOD;
+
+	scrCls();
+	scrMsg( 3, 1, $info );
+
+	$papers = papers();
+	$start = 1;
+	$end = count( $papers );
+	$last = 15;
+	$step = $start + $last;
+
+	while( true ){
+		$dashes = str_repeat( "-", 80 );
+		$d0 = str_repeat( "-", 5 );
+		$d1 = str_repeat( "-", 25 );
+		$d2 = str_repeat( "-", 20 );
+		$d3 = str_repeat( "-", 20 );
+
+		$line = 5;
+		scrMove( 5, $line++ );
+		printf( "+%5s+%25s+%20s+%20s+\n", $d0, $d1, $d2, $d3 );
+
+		$l1 = "###";
+		$l2 = "Name";
+		$l3 = "Width(in/mm)";
+		$l4 = "Height(in/mm)";
+		scrMove( 5, $line++ );
+		printf( "|%5s|%25s|%20s|%20s|\n", $l1, $l2, $l3, $l4 );
+
+		scrMove( 5, $line++ );
+		printf( "+%5s+%25s+%20s+%20s+\n", $d0, $d1, $d2, $d3 );
+		for( $i=$start; $i<$step; $i++ ){
+			if( strlen($papers[$i][1]) < 25 ){ $p1 = $papers[$i][1]; }
+				else { $p1 = substr($papers[$i][1], 0, 22) . "..."; }
+			$p2 = $papers[$i][4] . "in (" . $papers[$i][2] . "mm)";
+			$p3 = $papers[$i][5] . "in (" . $papers[$i][2] . "mm)";
+			scrMove( 5, $line++ );
+			printf( "|%5d|%25s|%20s|%20s|\n", $i, $p1, $p2, $p3 );
+			}
+
+		scrMove( 5, $line++ );
+		printf( "+%5s+%25s+%20s+%20s+\n", $d0, $d1, $d2, $d3 );
+		scrMove( 5, $line++ );
+		printf( "Enter either: ### to select a paper size" );
+		scrMove( 5, $line++ );
+		printf( "Or emter 'I' to go to a previous screen" );
+		scrMove( 5, $line++ );
+		printf( "Or emter 'K' to go to the next screen" );
+		scrMove( 5, $line++ );
+
+		$opt = array( "Which"=>"#", "Quit"=>"q", "Previous"=>"i", "Next"=>"k" );
+		$ans = scrAsk( 5, $line++, "Command", $opt );
+		if( $ans === "q" ){ exit; }
+		if( $ans === "i" ){
+			if( $start > $last ){ $start -= $last; }
+			}
+
+		if( $ans === "k" ){
+			if( $start < ($end - $last) ){ $start += $last; }
+			}
+
+		if( is_numeric($ans) ){
+			return $ans;
+			}
+
+		sleep( 30 );
+		}
+
+	return false;
+}
+################################################################################
 #	webFind(). Look for something in the web page, kick out useless stuff.
 ################################################################################
 function webFind( $find, $page, $stop=null )
@@ -235,14 +333,61 @@ function scrMsg( $x, $y, $info )
 		}
 }
 ################################################################################
-#	NCurses kind of stuff
+#	getProcs(). Get all processes currently running.
 ################################################################################
-function scrStart(){ scrMove(); scrClear(); }
-function scrS(){ scrMove(); scrClear(); }
+function getProcs()
+{
+	$cmd = "tasklist";
+	exec( $cmd, $output );
+	return $output;
+}
+################################################################################
+#	scrInit(). Put all initialization stuff in here.
+################################################################################
+function scrInit()
+{
+}
+################################################################################
+#	scrTitle(). Set the title of the window
+################################################################################
+function scrTitle( $title="Plotter v1.0 by Mark Manning" )
+{
+	scrPrint( "\e]0;$title" . chr(7) );
+}
+################################################################################
+#	scrStatusLine(). Show the status line.
+################################################################################
+function scrStatusLine()
+{
+	scrPrint( "\e[30;1H" ); # Move to the bottom of the screen
+	scrPrint( "\e[KPlotter v1.0" ); # Print the title
+	scrMove( 0, 0 );
+}
+################################################################################
+#	scrBox(). Create a box on screen.
+################################################################################
+function scrBox( $x1=0, $y1=0, $x2=80, $y2=30 )
+{
+	if( $x1 < 1 ){ $x1 = 1; }
+	if( $y1 < 1 ){ $y1 = 1; }
+	if( $x2 > 80 ){ $x2 = 80; }
+	if( $y2 > 30 ){ $y2 = 30; }
 
+	scrPrint( "\e[38;2;0;0;0;m" );
+	scrPrint( "\e[48;2;225;225;225;m" );
+
+	for( $x=$x1; $x<$x2; $x++ ){
+		scrMove( $x, $y1 );
+		scrPrint( "-" );
+		}
+
+	for( $y=$y1; $y<$y2; $y++ ){
+		}
+}
+
+function scrS(){ scrMove(); scrClear(); }
 function scrClear( $opt=2 ){ echo "\e[" . $opt . "J"; }
 function scrCls( $opt=2 ){ echo "\e[" . $opt . "J"; }
-
 function scrPrint( $string ){ echo $string; }
 function scrPrt( $string ){ echo $string; }
 ################################################################################
@@ -257,9 +402,7 @@ function scrAsk( $x, $y, $msg, $opt )
 	$opts = "[";
 	$options = [];
 	foreach( $opt as $k=>$v ){
-		$opts .= "$v, ";
-		$a = explode( ':', $v );
-		$options[] = $a[1];
+		$opts .= "$k=$v, ";
 		}
 
 	$opts = substr( $opts, 0, -2 ) . "]";
@@ -267,12 +410,8 @@ function scrAsk( $x, $y, $msg, $opt )
 
 	scrMove( $x, $y );
 	scrPrint( $msg );
-	$ans = fgets(STDIN);
-	$o = implode( ",", $options );
 
-sleep( 1 );
-scrMsg( 0, 15, "OPTIONS = $o" );
-sleep( 1 );
+	$ans = getKey( false );
 
 	return $ans;
 }
@@ -445,57 +584,289 @@ function getSCRSize()
 	return array( $str, 0 );
 }
 ################################################################################
-#	makeQBKey(). Make the QB64 program to handle getting keys from the
+#	makeQB(). Make the QB64 program to handle getting keys from the
 #		console.
 ################################################################################
-function makeQBKey( $file="inkey.bas" )
+function makeQB( $file="inkey.bas" )
 {
 	$cwd = getcwd();
-	$basFile = "$cwd/$file";
+	if( !preg_match("/\w:/i", $file) ){ $basFile = "$cwd/$file"; }
+		else { $basFile = $file; }
 
 	$code = <<<EOD
 '
 '	Simple inkey$ program
 '
-'	input the escape character so we can test against it
-'	IF you want to use the escape key - then just choose another key
-'	and put it in this next line.
+'	Use the ESCape key as a way to get out of this routine.
+'	REMEMBER! If you just type a key - this program will return
+'	that key in the INKEY.DAT file. THEN you must read that
+'	file in. This program also creates a INKEY.LOG file so you
+'	know everything that was typed in to this program.
+'
+'	IF you DO NOT want to use the escape key - then just choose
+'	another key and put it in this next line.
+'
+'	A LOT of this program (the technical stuff) was taken from
+'	these locations. The simpler stuff I did.
+'
+'	Taken from : https://qb64.com/wiki/_SCREENMOVE.html
+'	Taken from : https://qb64phoenix.com/forum/showthread.php?tid=4230&pid=38073
+'
+'	GET HANDLE TO THE PROGRAM WINDOW
+'
+Declare Dynamic Library "user32"
+    Function GetForegroundWindow& ()
+    Function GetWindowThreadProcessId& (ByVal hWnd As Long, ByVal lpdwProcessId As _Offset)
+    Function AttachThreadInput& (ByVal idAttach As Long, ByVal idAttachTo As Long, ByVal fAttach As Long)
+    Function SetForegroundWindow& (ByVal hWnd As Long)
+    Function BringWindowToTop& (ByVal hWnd As Long)
+End Declare
+
+Declare Dynamic Library "kernel32"
+    Function GetCurrentThreadId& ()
+End Declare
+
+'
+'	Use the ESCape key to stop the program. The ESCape key
+'	IS sent to the INKEY.DAT file.
 '
 	esc$ = ""
-
-	open "key.dat" for output as #1
-	close #1
-
+'
+'	Start the loop
+'
 	while 1
+		hTarget& = _WindowHandle
+		_SCREENMOVE -2000, -2000
+
+		if _WindowHasFocus = 0 then
+			' ----------------------------
+			'  Get thread IDs
+			' ----------------------------
+			hForeground& = GetForegroundWindow
+			fgThread& = GetWindowThreadProcessId(hForeground&, 0)
+			myThread& = GetCurrentThreadId
+			' ----------------------------
+			'  Attach input queues
+			' ----------------------------
+			result1& = AttachThreadInput(myThread&, fgThread&, 1)
+			' ----------------------------
+			'  Try to force activation
+			' ----------------------------
+			result2& = BringWindowToTop(hTarget&)
+			result3& = SetForegroundWindow(hTarget&)
+			' ----------------------------
+			'  Detach input queues
+			' ----------------------------
+			result4& = AttachThreadInput(myThread&, fgThread&, 0)
+
+'			Print "Attempted to activate window."
+			_Delay .1 'give it time to swap focus before trying again
+			end if
+
 		mykey$ = inkey$
-		if mykey$ = esc$ then
-			end
-			endif
 
 		if len(mykey$) > 0 then
+'
+'	Save the pressed key to the INKEY.DAT file.
+'	REMEMBER! Just because the user has NOW pressed
+'		a key DOES NOT mean they did not press another
+'		key earlier. So we always APPEND to the file.
+'	IT IS THE RESPONSIBILITY of the calling program
+'		to GET RID of the INKEY.DAT file. Failure to
+'		do so means you might get unexpected results
+'		on your next read.
+'
 			print mykey$;
-			open "key.dat" for append as #1
+			open "INKEY.DAT" for append as #1
 			print #1, mykey$;
 			close #1
+
+			open "INKEY.LOG" for append as #1
+			print #1, mykey$;
+			close #1
+
+			if mykey$ = esc$ then
+				end
+				endif
+
 			endif
+
 		wend
+
 	end
 
 EOD;
 
-	echo "Now that the file has been made you must compile it with QB64.\n";
+	echo "Now that the file has been made you must compile it with QB64 or I\n";
+	echo "can compile it. You can do that by just re-running this program and\n";
+	echo "I will look to see if there is an inkey.exe file. If there is NOT an\n";
+	echo "inkey.exe file, then I will try to compile the inkey.bas file.\n";
 	echo "AFTER COMPILING, you should wind up with something like 'inkey.exe'\n";
 	echo "The source code is in file : $basFile\n";
 
 	return file_put_contents( $basFile, $code );
 }
+################################################################################
+#	getKey(). Does all of the steps to get an answer.
+################################################################################
+function getKey( $opt=false )
+{
+	static $time = null;
+	static $first = true;
 
+	$pr = new class_pr();
+
+	if( is_null($time) ){ $time = time(); }
+	if( (time() - $time) > 20 ){
+		while( delInkey() );
+		$time = time();
+		$first = true;
+		}
+
+	if( $first ){
+		$first = false;
+		pipes_init();
+		pipes_open();
+		}
+
+	$ans = pipes_read();
+	if( $opt ){ pipes_close(); }
+
+$pr->pr( $time, "TIME = " );
+$pr->pr( $first, "FIRST = " );
+$pr->pr( $ans, "ANS = " );
+	return $ans;
+}
+################################################################################
+#	delInkey(). Remove the INKEY.EXE process. Call it multiple times.
+################################################################################
+function delInkey( $exe )
+{
+	$info = getProcs();
+
+	foreach( $info as $k=>$v ){
+		if( preg_match("/$exe/i", $v) ){
+			$info = preg_split( "/\s+/", $info[$k] );
+			break;
+			}
+
+		unset( $info[$k] );
+		}
+
+	if( count($info) > 0 ){
+		$flag = true;
+		$process = $info[0];
+		$pid = $info[1];
+
+		$cmd = "taskkill /pid $pid";
+		$retval = exec( $cmd, $output );
+		}
+		else { $flag = false; }
+
+	return $flag;
+}
+################################################################################
+#	pipes_init(). Set everything up so the pipes will work.
+################################################################################
+function pipes_init()
+{
+	global $cwd, $cf, $pr, $exe;
+	global $pipes, $process, $circuit;
+#
+#	If we have already opened the pipes - the get rid of them
+#
+	if( !is_null($pipes) ){ pipes_close(); }
+
+	$pipes = null;
+
+	$circuit = array(
+		0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+		1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
+		2 => array("pipe", "w"),  // stderr is a pipe that the child will write to
+#		2 => array("file", "c:/tmp/stderr.txt", "w"),  // stderr is a pipe that the child will write to
+		);
+}
+################################################################################
+#	pipes_open(). Open up the pipes
+################################################################################
+function pipes_open()
+{
+	global $cwd, $cf, $pr, $exe;
+	global $pipes, $process, $circuit;
+
+	$dq = '"';
+	$ret = "";
+	$env = null;
+	$pr = $pr;
+	$cwd = $cwd;
+	$exe = $exe;
+	$pipes = $pipes;
+	$circuit = $circuit;
+
+#$pr->pr( $cwd, "CWD = " );
+#$pr->pr( $exe, "EXE = " );
+
+	if( is_null("$cwd/$exe") || !file_exists("$cwd/$exe") ){
+		die( "***** ERROR : No such file ('$cwd/$exe') or FILE is NULL\n" );
+		}
+
+	$cmd = "$dq$cwd/$exe$dq";
+	$process = proc_open( $cmd, $circuit, $pipes, $cwd, $env );
+
+	if( !is_resource($process) ){
+		die( "***** ERROR : Could not open a process via PROC_OPEN - aborting.\n" );
+		}
+
+	foreach( $pipes as $k=>$v ){
+		if( !is_resource($pipes[$k]) ){
+			die( "***** ERROR : Did not get the pipe #$k - aborting.\n" );
+			}
+		}
+
+	return;
+}
+################################################################################
+#	pipes_read(). Read info from the pipe.
+################################################################################
+function pipes_read( $pipe=1 )
+{
+	global $cwd, $cf, $pr, $exe;
+	global $pipes, $process, $circuit;
+#
+#	What this does is it just sits there and looks to see if the INKEY.DAT
+#	file has been created by the basic program. If so - it gets it and
+#	then deletes it so we don't get duplicate key strokes.
+#
+	$cnt = 0;
+	$info = "";
+	$count = 100;
+	$file = "$cwd/INKEY.DAT";
+	while( true ){
+		if( file_exists($file) ){
+			try {
+				$info = file_get_contents( $file );
+#	file_put_contents( "$cwd/out.dat", $info );
+				unlink( $file );
+				}
+				catch( exception $e ){
+					$pr->pr( $e->getMessage(), "Error = " );
+					}
+			}
+
+		if( strlen($info) > 0 ){ break; }
+		if( $cnt++ > $count ){ return false; }
+		sleep( 1 );
+		}
+
+	return $info;
+}
 ################################################################################
 #	pipes_close(). Close the connection.
 ################################################################################
 function pipes_close( $opt=true )
 {
-	global $cwd, $cf, $pr, $exe, $process, $pipes, $circuit;
+	global $cwd, $cf, $pr, $exe;
+	global $pipes, $process, $circuit;
 
 	$dq = '"';
 
@@ -511,17 +882,17 @@ function pipes_close( $opt=true )
 #	First get rid of the pipes
 #
 		if( !is_null($pipes[0]) || is_resource($pipes[0]) ){
-			echo "Closing pipe #0\n";
+#			echo "Closing pipe #0\n";
 			@fclose( $pipes[0] );
 			}
 
 		if( !is_null($pipes[1]) || is_resource($pipes[1]) ){
-			echo "Closing pipe #1\n";
+#			echo "Closing pipe #1\n";
 			@fclose( $pipes[1] );
 			}
 
 		if( !is_null($pipes[2]) || isset($pipes[2]) && is_resource($pipes[2]) ){
-			echo "Closing pipe #2\n";
+#			echo "Closing pipe #2\n";
 			@fclose( $pipes[2] );
 			}
 #
@@ -532,10 +903,10 @@ function pipes_close( $opt=true )
 #
 #	Now get rid of the process
 #
-			echo "Closing Processes\n";
+#			echo "Closing Processes\n";
 			$ret = proc_terminate( $process );
 
-			echo "Proc_terminate returned value = $ret\n";
+#			echo "Proc_terminate returned value = $ret\n";
 #
 #	Under Windows - we have to physically kill the executable.
 #
